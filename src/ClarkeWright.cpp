@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -166,10 +167,12 @@ bool ClarkeWright::Construct(VRP *V, double lambda, bool use_neighbor_list)
     {
         if(V->create_default_routes() == false)
         {
-            report_error("%s: Default CW routes are not feasible!!\n");
-            // The default routes are not feasible!  
-            return false;
-
+           //Might be infeasible - not really an error.
+           //report_error("%s: Default CW routes are not feasible!!\n");
+           // The default routes are not feasible!
+           delete [] status;
+           return false;
+           
         }
     }
 

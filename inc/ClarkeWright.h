@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -28,7 +29,9 @@ public:
     void CreateSavingsMatrix(class VRP *V, double lambda, bool use_neighbor_list);  
     bool has_savings_matrix;
     int savings_matrix_size;
-
+ private:
+    ClarkeWright(const ClarkeWright& src){/* do not create copies */}
+    ClarkeWright& operator=(const ClarkeWright&){ return *this; }
 };
 
 #endif

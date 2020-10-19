@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -22,7 +23,7 @@ VRPMove::VRPMove()
     this->savings=-1;
     this->total_number_of_routes=-1;
 
-    this->arrival_times=NULL;
+    //this->arrival_times=NULL;
     
 }
 
@@ -36,13 +37,15 @@ VRPMove::VRPMove(int n)
     this->savings=-1;
     this->total_number_of_routes=-1;
 
-    this->arrival_times=new double[n]; // Set up for time windows for each customer
+    //this->arrival_times=new double[n]; // Set up for time windows for each customer
 }
 
 VRPMove::~VRPMove()
 {
-    if(this->arrival_times)
-        delete [] this->arrival_times;
+   /*if(this->arrival_times){
+      delete [] this->arrival_times;
+      this->arrival_times = NULL;
+      }*/
 }
 
 

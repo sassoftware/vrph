@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -12,6 +13,19 @@
 
 #include "VRPH.h"
 
+#define CheckTimeAndBreak()                                     \
+   {                                                            \
+      if(use_cutoff && stop-start>ticks_left){                  \
+         doContinue = false;                                    \
+         break;                                                 \
+      }                                                         \
+      if(checkBreak && checkBreakFunc(checkBreakFuncData)){     \
+         doContinue = false;                                    \
+         break;                                                 \
+      }                                                         \
+   }
+
+
 double VRP::RTR_solve(int heuristics, int intensity, int max_stuck, int max_perturbs,
                       double dev, int nlist_size, int perturb_type, int accept_type, bool verbose,
                       bool use_cutoff, clock_t ticks_left)
@@ -23,6 +37,10 @@ double VRP::RTR_solve(int heuristics, int intensity, int max_stuck, int max_pert
     /// some existing solution.
     /// Returns the objective function value of the best solution found
     ///
+   bool doContinue = true;
+   bool checkBreak = false;
+   if(checkBreakFunc && checkBreakFuncData)
+      checkBreak = true;
 
     // Make sure accept_type is either VRPH_BEST_ACCEPT or VRPH_FIRST_ACCEPT - matters only
     // for the downhill phase as we use VRPH_LI_ACCEPT in the diversification phase
@@ -128,8 +146,7 @@ uphill:
       this->verify_routes("VRP::RTR_solve: uphill iteration start");
 #endif
         stop = clock();
-        if (use_cutoff && stop-start>ticks_left)
-            break;
+        CheckTimeAndBreak();
             
         start_val=total_route_length;
 
@@ -286,43 +303,72 @@ downhill:
         printf("Downhill starting at %f (best=%f)\n",orig_val,this->best_total_route_length);
 
 
-    if((heuristics & ONE_POINT_MOVE)|| (heuristics & KITCHEN_SINK) )
+    if(doContinue && (heuristics & ONE_POINT_MOVE)|| (heuristics & KITCHEN_SINK) )
     {
+       //Avoid infinite loop. Why is this possible?
+       double val1 = orig_val;
+       double val2 = orig_val;
+       int    iteration = 0;
+       //int    iterationOuter = 0;
         rules=VRPH_DOWNHILL+objective+random+fixed+neighbor_list+accept_type;
         for(;;)
         {
             stop = clock();
-            if (use_cutoff && stop-start>ticks_left)
-                break;
+            CheckTimeAndBreak();
             
             // One Point Move
             start_val=total_route_length;
+            //printf("Starting downhill one-point start_val:%g iterationOuter:%d\n",
+            //     start_val,iterationOuter);                
 
             if(random)
                 random_permutation(perm, this->num_nodes);
 
-            for(i=1;i<=n;i++)
+            for(i=1;i<=n;i++){
                 OPM.search(this, perm[i - 1], rules);
+                //printf("i:%d n:%d Downhill one-point move total_route_length:%g\n",
+                //       i,perm[i-1],total_route_length);                
+            }
 
+            //if(verbose)
+            // printf("Downhill one-point move start_val:%g total_route_length:%g iterationOuter:%d\n",
+            //        start_val,total_route_length,iterationOuter);
 
             if(VRPH_ABS(total_route_length-start_val)<VRPH_EPSILON)
-                break; 
+                break;
 
+            //avoid infinite loop
+            if(iteration == 0){
+               if(VRPH_ABS(total_route_length-val1)<VRPH_EPSILON){
+                  //assert(0);
+                  break;
+               }
+               val1 = total_route_length;
+               iteration++;
+            }
+            else if(iteration == 1){
+               if(VRPH_ABS(total_route_length-val2)<VRPH_EPSILON){
+                  //assert(0);
+                  break;
+               }
+               val2 = total_route_length;
+               iteration = 0;
+            }
+            //iterationOuter++;
         }
 
     }
 
 
 
-    if((heuristics & TWO_POINT_MOVE) || (heuristics & KITCHEN_SINK) )
+    if(doContinue && (heuristics & TWO_POINT_MOVE) || (heuristics & KITCHEN_SINK) )
     {
         rules=VRPH_DOWNHILL+VRPH_INTER_ROUTE_ONLY+objective+random+fixed+neighbor_list+accept_type;
         for(;;)
-        {
+        {           
             stop = clock();
-            if (use_cutoff && stop-start>ticks_left)
-                break;
-            
+            CheckTimeAndBreak();
+                        
             // Two Point Move
             start_val=total_route_length;
 
@@ -341,15 +387,14 @@ downhill:
 
 
 
-    if((heuristics & TWO_OPT)|| (heuristics & KITCHEN_SINK) )
+    if(doContinue && (heuristics & TWO_OPT)|| (heuristics & KITCHEN_SINK) )
     {
         // Do inter-route first a la Li
         rules=VRPH_DOWNHILL+VRPH_INTER_ROUTE_ONLY+objective+random+fixed+neighbor_list+accept_type;
         for(;;)
         {
             stop = clock();
-            if (use_cutoff && stop-start>ticks_left)
-                break;
+            CheckTimeAndBreak();
                 
             start_val=total_route_length;
 
@@ -369,8 +414,7 @@ downhill:
         for(;;)
         {
             stop = clock();
-            if (use_cutoff && stop-start>ticks_left)
-                break;
+            CheckTimeAndBreak();
 
             start_val=total_route_length;
 
@@ -385,15 +429,14 @@ downhill:
         }
     }
 
-    if((heuristics & THREE_POINT_MOVE) || (heuristics & KITCHEN_SINK) )
+    if(doContinue && (heuristics & THREE_POINT_MOVE) || (heuristics & KITCHEN_SINK) )
     {
         rules=VRPH_DOWNHILL+VRPH_INTER_ROUTE_ONLY+objective+random+fixed+accept_type+neighbor_list;
         for(;;)
         {
             stop = clock();
-            if (use_cutoff && stop-start>ticks_left)
-                break;
-                
+            CheckTimeAndBreak();
+                            
             // Three Point Move
             start_val=total_route_length;
 
@@ -410,7 +453,7 @@ downhill:
     }
 
 
-    if((heuristics & OR_OPT) || (heuristics & KITCHEN_SINK))
+    if(doContinue && (heuristics & OR_OPT) || (heuristics & KITCHEN_SINK))
     {
 
         rules=VRPH_DOWNHILL+ objective +random +fixed + accept_type + neighbor_list;
@@ -418,8 +461,7 @@ downhill:
         for(;;)
         {
             stop = clock();
-            if (use_cutoff && stop-start>ticks_left)
-                break;
+            CheckTimeAndBreak();
                 
             // OrOpt
             start_val=total_route_length;
@@ -439,7 +481,7 @@ downhill:
         }
     }
 
-    if((heuristics & THREE_OPT) || (heuristics & KITCHEN_SINK) )
+    if(doContinue && (heuristics & THREE_OPT) || (heuristics & KITCHEN_SINK) )
     {
         normalize_route_numbers();
         R= total_number_of_routes;
@@ -447,8 +489,7 @@ downhill:
         for(;;)
         {
             stop = clock();
-            if (use_cutoff && stop-start>ticks_left)
-                break;
+            CheckTimeAndBreak();
                 
             // 3OPT
             start_val=total_route_length;
@@ -462,7 +503,7 @@ downhill:
     }
 
 
-    if( (heuristics & CROSS_EXCHANGE) )
+    if(doContinue && (heuristics & CROSS_EXCHANGE) )
     {
         normalize_route_numbers();
         this->find_neighboring_routes();
@@ -473,20 +514,20 @@ downhill:
         for(i=1; i<=R-1; i++)    
         {
             stop = clock();
-            if (use_cutoff && stop-start>ticks_left)
-                break;
+            CheckTimeAndBreak();
                 
             for(j=0;j<=1;j++)
                 CE.route_search(this,i, route[i].neighboring_routes[j], rules); 
         }
     }
-    
-    stop = clock();
-    if (!use_cutoff || stop-start<ticks_left)
-    {
 
-        // Repeat the downhill phase until we find no more improvements
-        if(total_route_length<orig_val-VRPH_EPSILON)
+    stop = clock();
+
+    if (doContinue)
+       {
+          
+          // Repeat the downhill phase until we find no more improvements
+          if(total_route_length<orig_val-VRPH_EPSILON)
             goto downhill;
         if(verbose)
             printf("Downhill complete: %5.2f[downhill started at %f] (%5.2f)\n",total_route_length,orig_val,
@@ -610,9 +651,7 @@ double VRP::SA_solve(int heuristics, double start_temp, double cool_ratio,
     OrOpt         OR;
     ThreeOpt     ThreeO;
     CrossExchange    CE;
-    ThreePointMove ThreePM;
-
-    double start_val;
+    ThreePointMove ThreePM;    
 
     this->export_solution_buff(this->best_sol_buff);
     // We are assuming we have an existing solution
@@ -656,7 +695,7 @@ double VRP::SA_solve(int heuristics, double start_temp, double cool_ratio,
             if (use_cutoff && stop-start>ticks_left)
                 break;
             
-            start_val=total_route_length;
+            //start_val=total_route_length;
             if(heuristics & THREE_OPT)
             {
                 rules=VRPH_SIMULATED_ANNEALING+VRPH_INTRA_ROUTE_ONLY+random+fixed+objective;

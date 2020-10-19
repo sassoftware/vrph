@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -12,6 +13,30 @@
 
 #include "VRPH.h"
 
+//https://wiki.sei.cmu.edu/confluence/display/c/ERR34-C.+Detect+errors+when+converting+a+string+to+a+number
+#define myatoi(si,buff){                                                \
+      errno = 0;                                                        \
+      char * end;                                                       \
+      const long sl = strtol((buff),&end,10);                           \
+      if(end == (buff)){                                                \
+         report_error("%s not a decimal number\n",__FUNCTION__);        \
+      }                                                                 \
+      else if('\0' != *end){                                            \
+         report_error("%s extra characters at end of input\n",__FUNCTION__); \
+      }                                                                 \
+      else if((LONG_MIN==sl || LONG_MAX==sl) && ERANGE==errno){         \
+         report_error("%s out of range type long\n",__FUNCTION__);      \
+      }                                                                 \
+      else if(sl > INT_MAX){                                            \
+         report_error("%s greater than INT_MAX\n",__FUNCTION__);        \
+      }                                                                 \
+      else if(sl < INT_MIN){                                            \
+         report_error("%s less than INT_MIN\n",__FUNCTION__);           \
+      }                                                                 \
+      else                                                              \
+         (si) = (int)sl;                                                \
+   }
+
 void VRP::read_TSPLIB_file(const char *node_file)
 {
     ///
@@ -22,7 +47,7 @@ void VRP::read_TSPLIB_file(const char *node_file)
     ///
 
 
-    char *temp;
+   char *temp,*buff;
     char line[VRPH_STRING_SIZE];
     char *temp2;
     int max_id = -VRP_INFINITY;
@@ -57,11 +82,13 @@ void VRP::read_TSPLIB_file(const char *node_file)
         temp=strtok(line,":");
 
         // trim it (remove whitespace from the end and start)
-        while(*temp==' ') temp++;
-        temp2 = temp+strlen(temp)-1;
-        if (*temp2=='\n') temp2--;
-        while(temp2>temp && *temp2==' ') temp2--;
-        temp2[1] = '\0';
+        if(strlen(temp) > 0){
+           while(*temp==' ') temp++;
+           temp2 = temp+strlen(temp)-1;
+           if (*temp2=='\n') temp2--;
+           while(temp2>temp && *temp2==' ') temp2--;
+           temp2[1] = '\0';
+        }
 
 #if TSPLIB_DEBUG
         printf("line begins with \"%s\"\n",temp);
@@ -91,7 +118,8 @@ void VRP::read_TSPLIB_file(const char *node_file)
             // NAME
 
             temp2=strtok(NULL," ");
-            strcpy(name,temp2);        
+            memset(name,'\0',sizeof(char)*VRPH_STRING_SIZE);
+            strncpy(name,temp2,VRPH_STRING_SIZE);//TODO: safe?       
             // Trim the ANNOYING \n if necessary...
             for(i=0;i<(int)strlen(name);i++)
             {
@@ -138,8 +166,9 @@ void VRP::read_TSPLIB_file(const char *node_file)
             break;
         case 4:
             // DIMENSION
-            num_nodes=atoi(strtok(NULL,""));
-            num_nodes--;
+           buff = strtok(NULL,"");
+           myatoi(num_nodes,buff);
+           num_nodes--;
             matrix_size= num_nodes;
             // num_nodes is the # of non-VRPH_DEPOT nodes
             // The value of DIMENSION includes the VRPH_DEPOT!
@@ -149,11 +178,12 @@ void VRP::read_TSPLIB_file(const char *node_file)
 
         case 5:
             // CAPACITY
-            max_veh_capacity=atoi(strtok(NULL,""));
+            buff = strtok(NULL,"");
+            myatoi(max_veh_capacity,buff);
             orig_max_veh_capacity=max_veh_capacity;
 
 #if TSPLIB_DEBUG
-            printf("veh capacity is %d\n",max_veh_capacity);
+            printf("veh capacity is %g\n",max_veh_capacity);
 #endif
             break;
         case 6:
@@ -252,12 +282,6 @@ void VRP::read_TSPLIB_file(const char *node_file)
             if(strncmp(temp2,"MAN_2D",6)==0)
             {
                 edge_weight_type=VRPH_MAN_2D;
-
-            }
-
-            if(strncmp(temp2,"MAN_3D",6)==0)
-            {
-                edge_weight_type=VRPH_MAN_3D;
 
             }
 
@@ -680,8 +704,8 @@ void VRP::read_TSPLIB_file(const char *node_file)
 #endif
 
             // VEHICLES
-
-            min_vehicles=atoi(strtok(NULL,""));
+            buff = strtok(NULL,"");
+            myatoi(min_vehicles,buff);
             // This is not currently used
 #if TSPLIB_DEBUG
             printf("Setting min_vehicles to %d\n",min_vehicles);
@@ -692,8 +716,10 @@ void VRP::read_TSPLIB_file(const char *node_file)
         case 17:
         
             // NUM_DAYS
-            this->num_days=atoi(strtok(NULL,""));
-            break;
+           //this->num_days=atoi(strtok(NULL,""));
+           buff = strtok(NULL,"");
+           myatoi(this->num_days,buff);
+           break;
 
         case 18:
             // SVC_TIME_SECTION
@@ -771,6 +797,8 @@ void VRP::read_TSPLIB_file(const char *node_file)
             while(i<=num_nodes)
             {
                 fscanf(infile,"%d",&x);
+                if(x < 0 || x > INT_MAX)
+                   report_error("%s display data invalid\n",__FUNCTION__);
                 fscanf(infile,"%f",&a);
                 fscanf(infile,"%f\n",&b);
 
@@ -808,7 +836,7 @@ void VRP::write_TSPLIB_stream(FILE* out)
     if(this->best_known!=-1)
         fprintf(out,"BEST_KNOWN: %5.3f\n", this->best_known);
     fprintf(out,"DIMENSION: %d\n",num_nodes+1);
-    fprintf(out,"CAPACITY: %d\n",max_veh_capacity);
+    fprintf(out,"CAPACITY: %g\n",max_veh_capacity);
     if(max_route_length!=VRP_INFINITY)
         fprintf(out,"DISTANCE: %4.5f\n",max_route_length);
     if(min_vehicles!=-1)
@@ -840,7 +868,7 @@ void VRP::write_TSPLIB_stream(FILE* out)
     fprintf(out,"1 0\n");
     for(i=1;i<=num_nodes;i++)
     {
-        fprintf(out,"%d %d\n",i+1,nodes[i].demand);
+        fprintf(out,"%d %g\n",i+1,nodes[i].demand);
     }
 
     fprintf(out,"DEPOT_SECTION\n");
@@ -999,6 +1027,7 @@ void VRP::write_solutions(int num_sols, const char *filename)
 
     fflush(out);
     fclose(out);
+    delete [] sol;
     return;
 
 }
@@ -1039,7 +1068,7 @@ void VRP::write_tex_file(const char *filename)
     fprintf(out,"\\endfirsthead\n");
     fprintf(out,"\\endfoot\n");
     fprintf(out,"\\endlastfoot\n");
-    fprintf(out,"\\multicolumn{3}{|l|}{Vehicle capacity}&%d\\\\\n",this->max_veh_capacity);
+    fprintf(out,"\\multicolumn{3}{|l|}{Vehicle capacity}&%g\\\\\n",this->max_veh_capacity);
     if(this->max_route_length!=VRP_INFINITY)
         fprintf(out,"\\multicolumn{3}{|l|}{Maximum route length}&%5.3f\\\\\n",this->max_route_length);
     else
@@ -1056,13 +1085,13 @@ void VRP::write_tex_file(const char *filename)
 
     for(i=1;i<=this->total_number_of_routes;i++)
     {
-        fprintf(out,"%d&%5.3f&%d&(0",i,this->route[i].length,this->route[i].load);
+        fprintf(out,"%d&%5.3f&%g&(0",i,this->route[i].length,this->route[i].load);
         int current=this->route[i].start;
         while(current>=0)
         {
             fprintf(out,", %d",current);
             current=this->next_array[current];
-
+            
         }
         fprintf(out,", 0)\\\\\n");
         fprintf(out,"\\hline\n");
@@ -1094,6 +1123,8 @@ void VRP::read_solution_file(const char *filename)
     int *new_sol;
     int i, n;
     fscanf(in, "%d", &n);
+    if(n < 0 || n > INT_MAX)
+       report_error("%s invalid solution file\n",__FUNCTION__);
     new_sol = new int[n + 2];
     new_sol[0] = n;
     for (i = 1; i <= n + 1; i++)
@@ -1128,7 +1159,7 @@ void VRP::read_optimum_file(const char *filename)
     }
 
     int *new_sol;
-    int current_route = 0;
+    //int current_route = 0;
     int j;
     int node;
     char* next_char;
@@ -1193,8 +1224,8 @@ void VRP::import_solution_buff(int *sol_buff)
     ///
 
 
-    int i, n, rnum, current, next, load, num_in_route;
-    double len;
+    int i, n, rnum, current, next, num_in_route;
+    double len, load;
 
     next=-1; //to avoid warning...
 
@@ -1231,7 +1262,7 @@ void VRP::import_solution_buff(int *sol_buff)
         rnum=1;
 
         current=VRPH_ABS(sol_buff[1]);
-        routed[current]=true;
+        routed[VRPH_ABS(current)]=true;
         next_array[VRPH_DEPOT]=sol_buff[1];
         route_num[VRPH_ABS(current)]=rnum;
         route[rnum].start=VRPH_ABS(current);
@@ -1266,13 +1297,13 @@ void VRP::import_solution_buff(int *sol_buff)
                 if(rnum>n)
                 {
                     fprintf(stderr,"%d>%d:  rnum too big in import solution buff!\n",rnum,n);
-                    for(i=0;i<=n;i++)
-                        fprintf(stderr,"%d ",sol_buff[i]);
+                    for(int j=0;j<=n;j++)
+                        fprintf(stderr,"%d ",sol_buff[j]);
         
                     report_error("%s\n",__FUNCTION__);
                 }
 
-
+                
                 rnum++;
                 num_in_route=0;
                 len=0;
@@ -1328,6 +1359,22 @@ void VRP::import_solution_buff(int *sol_buff)
     return;
 
 }
+
+void VRP::import_solution(int * sol_buff)
+{
+   ///
+   /// Imports a solution from buffer and marks it as best.
+   ///
+   this->import_solution_buff(sol_buff);
+#if VERIFY_ALL
+   assert(this->verify_routes("After import_solution\n"));
+#endif
+   memcpy(this->best_sol_buff, this->current_sol_buff, (this->num_nodes + 2) * sizeof(int));
+   this->set_best_total_route_length(this->get_total_route_length());
+   return;
+}
+
+
 void VRP::export_solution_buff(int *sol_buff)
 {
     ///
@@ -1366,6 +1413,7 @@ void VRP::export_canonical_solution_buff(int *sol_buff)
     int i,j,next;
     int *start_buff;
 
+    //printf("VRP::export_canonical_solution_buff total_route_length:%g\n",total_route_length);
     start_buff=new int[total_number_of_routes];
     
     this->normalize_route_numbers();
@@ -1373,9 +1421,11 @@ void VRP::export_canonical_solution_buff(int *sol_buff)
     // First orient each route properly
     for(i=1;i<=total_number_of_routes;i++)
     {
-        if(route[i].end<route[i].start)
-            reverse_route(i);
-
+       //We cannot reverse the route if we are asymmetric without messing up the length.
+       if(this->symmetric && route[i].end<route[i].start){
+          reverse_route(i);
+          //printf("VRP::export_canonical_solution_buff after reverse total_route_length:%g\n",total_route_length);
+       }
         start_buff[i-1]=route[i].start;
     }
 
@@ -1421,7 +1471,7 @@ void VRP::show_routes()
     int route_start;
     int next_node_number;
     int current_node, current_route;
-    int total_load = 0;
+    double total_load = 0;
 
 
     printf("-----------------------------------------------\n");
@@ -1434,7 +1484,7 @@ void VRP::show_routes()
     total_load+= route[current_route].load;
 
 
-    printf("\nRoute %04d(routenum=%d)[0-%d...%d-0, %5.2f, %d, %d]: \n",i,current_route,
+    printf("\nRoute %04d(routenum=%d)[0-%d...%d-0, %5.2f, %g, %d]: \n",i,current_route,
         nodes[route[current_route].start].id-1,
         nodes[route[current_route].end].id-1,
         route[current_route].length,
@@ -1452,7 +1502,7 @@ void VRP::show_routes()
         if(next_array[current_node]==0)
         {
             printf("%d\n",VRPH_DEPOT);
-            printf("End of routes.  Totals: (%d routes,%d nodes,%d total load)\n",i,cnt,total_load);
+            printf("End of routes.  Totals: (%d routes,%d nodes,%g total load)\n",i,cnt,total_load);
             printf("-----------------------------------------------\n");
             if(cnt!= num_nodes)
             {
@@ -1490,7 +1540,7 @@ void VRP::show_routes()
             current_route = route_num[route_start];
             current_node = route_start;
 
-            printf("\n\nRoute %04d(routenum=%d)[0-%d...%d-0, %3.2f, %d, %d]: \n",i,current_route,
+            printf("\n\nRoute %04d(routenum=%d)[0-%d...%d-0, %3.2f, %g, %d]: \n",i,current_route,
                 nodes[route[current_route].start].id-1,
                 nodes[route[current_route].end].id-1,
                 route[current_route].length,
@@ -1522,7 +1572,7 @@ void VRP::show_route(int k)
     if(k<=0)
         report_error("%s: called with non-positive route number\n",__FUNCTION__);
 
-    printf("\nRoute %03d[0-%03d...%03d-0, %5.3f, %d, %d]: \n",k,
+    printf("\nRoute %03d[0-%03d...%03d-0, %5.3f, %g, %d]: \n",k,
         route[k].start,
         route[k].end,
         route[k].length,
@@ -1554,7 +1604,7 @@ void VRP::summary()
     int route_start;
     int next_node_number;
     int current_node, current_route;
-    int total_load = 0;
+    double total_load = 0;
     int num_in_route=0;
     int total_nodes=0;
     int cust_count=0;
@@ -1570,7 +1620,7 @@ void VRP::summary()
         printf("Vehicle max route length: %5.2f\n",this->max_route_length);
     else
         printf("Vehicle max route length: N/A\n");
-    printf("Vehicle capacity:         %d\n",this->max_veh_capacity);
+    printf("Vehicle capacity:         %g\n",this->max_veh_capacity);
     printf("Number of nodes visited:  %d\n",this->num_nodes);
     printf("------------------------------------------------\n");
     i = 1;
@@ -1581,7 +1631,7 @@ void VRP::summary()
     total_load+= route[current_route].load;
 
 
-    printf("\nRoute %03d[0-%03d...%03d-0\tlen=%03.2f\tload=%04d\t#=%03d]",i,route[current_route].start,
+    printf("\nRoute %03d[0-%03d...%03d-0\tlen=%03.2f\tload=%04g\t#=%03d]",i,route[current_route].start,
         route[current_route].end,route[current_route].length,
         route[current_route].load,route[current_route].num_customers);
     // Check feasibility
@@ -1638,7 +1688,7 @@ void VRP::summary()
             current_route = route_num[route_start];
             current_node = route_start;
 
-            printf("\nRoute %03d[0-%03d...%03d-0\tlen=%03.2f\tload=%04d\t#=%03d]",i,route[current_route].start,
+            printf("\nRoute %03d[0-%03d...%03d-0\tlen=%03.2f\tload=%04g\t#=%03d]",i,route[current_route].start,
                 route[current_route].end,route[current_route].length,
                 route[current_route].load,route[current_route].num_customers);
             cust_count+= route[current_route].num_customers;

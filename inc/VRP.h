@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -67,10 +68,21 @@ public:
     void read_optimum_file(const char *filename);
     int read_fixed_edges(const char *filename);
 
+    // Set methods for private data (rather than read from file)
+    void setMatrixSize(int matrixSize);
+    void setDummyIndex(int dummyIndex);
+    void setVehicleCapacity(double capacity);
+    void setDemand( const double * demand);
+    void setDistanceMatrix(const double * distDense,
+                           int            isUnDirected);
+    void setBreakFunction(int (*checkBreakFunc)(void*),
+                          void * checkBreakFuncData);
+
     // Solution buffers (import/export)
     void export_solution_buff(int *sol_buff);
     void import_solution_buff(int *sol_buff);
     void export_canonical_solution_buff(int *sol_buff);
+    void import_solution(int * sol_buff);
 
     // Solution display
     void show_routes();
@@ -143,7 +155,7 @@ public:
     int get_num_days();        // For multi-day VRPs
     double get_best_known();
     void set_best_total_route_length(double val);
-    int get_max_veh_capacity();
+    double get_max_veh_capacity();
     double get_max_route_length();
 
     // Places to store unique solutions and routes - uses internal hash table
@@ -167,8 +179,18 @@ public:
     int num_evaluations[NUM_HEURISTICS];
     int num_moves[NUM_HEURISTICS];
 
+ private:
+    VRP(const VRP& src){/* do not create copies */}
+    VRP& operator=(const VRP&){ return *this; }
+
+ public:
+    //method to check break handling
+    int (*checkBreakFunc)(void *);
+    void * checkBreakFuncData;
+    
 private:  
 
+    
     // Problem parameters, description, etc.
     int num_nodes;
     double total_route_length;
@@ -180,9 +202,9 @@ private:
     double best_known;  // Record of the best known solution for benchmarks
     int num_days;        // For multi-day VRPs
     int problem_type;
-    int total_demand;
-    int max_veh_capacity;
-    int orig_max_veh_capacity;
+    double total_demand;
+    double max_veh_capacity;
+    double orig_max_veh_capacity;
     double max_route_length;
     double min_route_length;
     double orig_max_route_length;

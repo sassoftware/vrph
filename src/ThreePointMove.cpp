@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -421,8 +422,8 @@ bool ThreePointMove::evaluate(VRP *V, int b, int i, int j, int rules, VRPMove *M
     }
 
     // else diff. routes - can't have any overlaps in this case
-    int new_a_load = V->route[a_route].load+V->nodes[i].demand + V->nodes[j].demand - V->nodes[b].demand;
-    int new_i_load = V->route[i_route].load-V->nodes[i].demand - V->nodes[j].demand + V->nodes[b].demand;
+    double new_a_load = V->route[a_route].load+V->nodes[i].demand + V->nodes[j].demand - V->nodes[b].demand;
+    double new_i_load = V->route[i_route].load-V->nodes[i].demand - V->nodes[j].demand + V->nodes[b].demand;
 
     if(new_a_load>V->max_veh_capacity || new_i_load>V->max_veh_capacity)
         return false;
@@ -489,7 +490,7 @@ bool ThreePointMove::move(VRP *V, VRPMove *M)
 
     // First artificially inflate the constraints
     double orig_max_len=V->max_route_length;
-    int orig_veh_cap=V->max_veh_capacity;
+    double orig_veh_cap=V->max_veh_capacity;
 
     V->max_route_length=VRP_INFINITY;
     V->max_veh_capacity=VRP_INFINITY;

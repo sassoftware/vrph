@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -57,11 +58,15 @@ VRPTabuList::~VRPTabuList()
     /// Destructor for the VRPTabuList.
     ///
 
-    if(this->hash_vals1)
-        delete [] hash_vals1;
+   if(this->hash_vals1){
+      delete [] hash_vals1;
+      hash_vals1 = NULL;
+   }
 
-    if(this->hash_vals2)
-        delete [] hash_vals2;
+   if(this->hash_vals2){
+      delete [] hash_vals2;
+      hash_vals2 = NULL;
+   }
 }
 
 void VRPTabuList::update_list(VRPRoute *r)
@@ -74,7 +79,7 @@ void VRPTabuList::update_list(VRPRoute *r)
     r->hash_val2=r->hash(SALT_2);
 
 #if VRPH_TABU_DEBUG
-    printf("Adding route with hashes (%d, %d) and length, load (%5.2f, %d) to tabu list\n",
+    printf("Adding route with hashes (%d, %d) and length, load (%5.2f, %g) to tabu list\n",
         r->hash_val,r->hash_val2,r->length,r->load);
 #endif
     

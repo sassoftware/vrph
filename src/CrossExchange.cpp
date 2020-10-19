@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -24,6 +25,9 @@ bool CrossExchange::route_search(class VRP *V, int r1, int r2, int rules)
     // Make sure we have two diff. routes!
     if(r1==r2)
         return false;
+    // Exit if either route is invalid
+    if(r1 == VRP_INFINITY || r2 == VRP_INFINITY)
+       return false;
 
 #if CROSS_EXCHANGE_DEBUG > 1
     printf("Evaluating CE move b/w routes %d and %d\n",r1,r2);
@@ -191,8 +195,11 @@ bool CrossExchange::route_search(class VRP *V, int r1, int r2, int rules)
 #if CROSS_EXCHANGE_DEBUG > 1
     printf("END OF LOOP: %f\n",BestM.savings);
 #endif
-    if(BestM.savings == VRP_INFINITY || accept_type == VRPH_FIRST_ACCEPT)
+    if(BestM.savings == VRP_INFINITY || accept_type == VRPH_FIRST_ACCEPT){
+       if(rules&VRPH_TABU)
+          delete [] old_sol;
         return false;
+    }
 
     if(accept_type==VRPH_FIRST_ACCEPT || BestM.savings==VRP_INFINITY)
     {
@@ -227,6 +234,9 @@ bool CrossExchange::route_search(class VRP *V, int r1, int r2, int rules)
             }
         }
     }
+
+    if(old_sol)
+       delete [] old_sol;
 
     report_error("%s: should have returned already...\n",__FUNCTION__);
     return false;
@@ -313,12 +323,12 @@ bool CrossExchange::evaluate(class VRP *V, int i1, int i2, int k1, int k2, int j
     if(new_j_len>V->max_route_length)
         return false;
 
-    int new_i_load, new_j_load;
+    double new_i_load, new_j_load;
 
     new_i_load = S_0_i1.load + S_j2_l1.load + S_k2_0.load;
 
     if(new_i_load>V->max_veh_capacity)
-        return false;
+       return false;
 
 
     new_j_load = V->route[i_route].load + V->route[j_route].load - new_i_load;

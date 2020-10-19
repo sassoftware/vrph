@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -22,9 +23,10 @@ bool Presert::evaluate(class VRP *V, int u, int i, VRPMove *M)
     /// VRPMove M.
     ///
 
-    int start_u,end_u, start_i, end_i;
-    int t,v,h,demand_change, i_load, u_load, i_route, u_route;
-    double tu, uv, tv, ui, hu, hi, u_loss, i_gain, i_change, i_length, u_length, savings;
+   int start_u,end_u, start_i;
+    int t,v,h,i_route, u_route;
+    double tu, uv, tv, ui, hu, hi, u_loss, i_gain, i_change, i_length, u_length;
+    double i_load, u_load,demand_change;
 
     if(V->routed[u]==false || V->routed[i]==false)
         return false;
@@ -68,12 +70,12 @@ bool Presert::evaluate(class VRP *V, int u, int i, VRPMove *M)
     i_gain = ui+hu-hi;
 
     //savings = new - old;
-    savings = (tv + hu + ui) - (tu + uv + hi);
+    //savings = (tv + hu + ui) - (tu + uv + hi);
     
     start_u= V->route[u_route].start;
     start_i= V->route[i_route].start;
     end_u= V->route[u_route].end;
-    end_i= V->route[i_route].end;
+    //end_i= V->route[i_route].end;
 
     
     if(start_u==start_i)
@@ -173,7 +175,7 @@ bool Presert::move(VRP *V, int u, int i)
     /// is feasible.
     ///
 
-    int pre_i, post_i, pre_u, post_u;
+    int pre_i, pre_u, post_u;
     int start_u,end_u, start_i, end_i;
     int i_route, u_route;
     int new_u_start, new_u_end, new_i_start, new_i_end;
@@ -207,7 +209,7 @@ bool Presert::move(VRP *V, int u, int i)
     // pre_i is what used to be before i
     pre_i= V->pred_array[i];
     // post_i is what used to be after i
-    post_i= V->next_array[i];
+    //post_i= V->next_array[i];
     // pre_u is what used to be before u
     pre_u= V->pred_array[u];
     // post_u is what used to be after u

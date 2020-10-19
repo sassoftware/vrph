@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -56,14 +57,14 @@ bool VRP::verify_routes(const char *message)
     /// the message.  Returns true with no output otherwise. 
     ///
 
-    int i, n, cnt;
+    int i, cnt;
     double len=0;
     double rlen=0;
     double tot_len=0;
     int next_node;
     int current_node, current_route, route_start, flag, current_start, current_end;
-    int total_load = 0;
-    int current_load = 0;
+    double total_load = 0;
+    double current_load = 0;
     int num_in_route=0;
     int counted_routes=0;
 
@@ -92,7 +93,6 @@ bool VRP::verify_routes(const char *message)
         report_error("%s: Next/pred inconsistency\n",__FUNCTION__);
     }
 
-    n=num_nodes;
     // Only consider the nodes in the solution!
 
     flag=0;    
@@ -128,7 +128,7 @@ bool VRP::verify_routes(const char *message)
         num_in_route++;
 
     while(route_start != 0 && i<num_nodes+1)
-    {
+    {       
         // When we finally get a route beginning at 0, this is the last route 
         // and there is no next route, so break out
 
@@ -142,8 +142,8 @@ bool VRP::verify_routes(const char *message)
         if(next_array[current_node]==VRPH_DEPOT)
         {
             // We're at the end of the Solution!
-            len+=d[current_node][VRPH_DEPOT];
-            rlen+=d[current_node][VRPH_DEPOT];
+           len+=d[current_node][VRPH_DEPOT];
+           rlen+=d[current_node][VRPH_DEPOT];
             current_route=route_num[current_node];
             tot_len+=rlen;
             if(num_in_route != route[current_route].num_customers)
@@ -259,7 +259,7 @@ bool VRP::verify_routes(const char *message)
 
             if(current_load != route[current_route].load)
             {
-                fprintf(stderr,"Route Loads:  %d!=%d\n",current_load, route[current_route].load);
+                fprintf(stderr,"Route Loads:  %g!=%g\n",current_load, route[current_route].load);
                 report_error(message);
             }
 
@@ -311,6 +311,7 @@ void report_error(const char* format, ...)
     fprintf(stderr, "\n"); 
 
     fprintf(stderr,"Exiting\n");
+    assert(0);
     exit(-1);
 }
 

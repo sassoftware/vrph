@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -25,7 +26,7 @@ public:
     double r;        // For polar    
     double theta;    // coordinates
     int id;
-    int demand;
+    double demand;
     int *daily_demands; // For period VRPs
     int cluster;
     VRPNeighborElement neighbor_list[MAX_NEIGHBORLIST_SIZE];
@@ -50,6 +51,10 @@ public:
     // Duplication
     void duplicate(VRPNode *N);
     void show();
+
+ private:
+    VRPNode(const VRPNode& src){/* do not create copies */}
+    VRPNode& operator=(const VRPNode&){ return *this; }
     
   };
 

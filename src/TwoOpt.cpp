@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -58,8 +59,11 @@ bool TwoOpt::search(class VRP *V, int b, int rules)
     if(rules & VRPH_FIXED_EDGES)
     {
         // If both edges a-b and b-c are fixed, then no 2 opt moves are possible
-        if(V->fixed[a][b] && V->fixed[b][c])
-            return false;
+       if(V->fixed[a][b] && V->fixed[b][c]){
+          if(old_sol)
+             delete [] old_sol;             
+          return false;
+       }
     }
 
     for(ii=0; ii<V->search_size; ii++)
@@ -372,7 +376,7 @@ bool TwoOpt::search(class VRP *V, int b, int rules)
 
                     }
                 }
-
+                                
                 if(evaluate(V,b,c,t,VRPH_DEPOT,rules, &M)==true)
                 {
                     if( ( (accept_type == VRPH_LI_ACCEPT) && ( M.savings<-VRPH_EPSILON )) ||
@@ -467,6 +471,9 @@ bool TwoOpt::search(class VRP *V, int b, int rules)
             }
         }
     }
+
+    if(old_sol)
+       delete [] old_sol;             
     
     report_error("%s: search shouldn't get here!\n",__FUNCTION__);
     return false;
@@ -499,7 +506,7 @@ bool TwoOpt::route_search(class VRP *V, int r1, int r2, int rules)
     if( (rules & VRPH_LI_ACCEPT) > 0)
         accept_type=VRPH_LI_ACCEPT;
 
-    double current_savings=VRP_INFINITY;
+    //double current_savings=VRP_INFINITY;
 
 
     a=VRPH_DEPOT;
@@ -519,7 +526,7 @@ bool TwoOpt::route_search(class VRP *V, int r1, int r2, int rules)
             // We now have the edges: a-b, b-c in route r1
             //                        i-j, j-k in route r2
             // Find the best of these 4 2 opt moves
-            current_savings=VRP_INFINITY;
+           //current_savings=VRP_INFINITY;
 
 
             // a-b, i-j
@@ -902,7 +909,7 @@ bool TwoOpt::move(class VRP *V, VRPMove *M)
 
     V->num_moves[TWO_OPT_INDEX]++;
 
-    if(M->move_type==FLIP && M->move_type==SWAP_ENDS)
+    if(!(M->move_type==FLIP || M->move_type==SWAP_ENDS))
         report_error("%s: unknown move type\n",__FUNCTION__);
 
     bool uses_dummy=false;

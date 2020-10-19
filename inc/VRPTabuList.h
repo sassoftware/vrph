@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -35,6 +36,10 @@ public:
     // Set to true once we have num_entries elements in the list
     void show();
     void empty();
+
+ private:
+    VRPTabuList(const VRPTabuList& src){/* do not create copies */}
+    VRPTabuList& operator=(const VRPTabuList&){ return *this; }
 };
 
 

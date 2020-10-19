@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -24,13 +25,12 @@ bool Postsert::evaluate(class VRP *V, int u, int i, VRPMove *M)
     if(V->routed[u]==false || V->routed[i]==false)
         return false;
 
-    int start_u,end_u, start_i, end_i;
-    int n,t,v,j,load_change, i_load, u_load, i_route, u_route;
-    double tu, uv, tv, iu, ju, ij;
+    int start_u,end_u;
+    int t,v,j,i_route, u_route;
+    double tu, uv, tv, iu, ij, load_change, i_load, u_load;
     double ui,uj,ti,savings;
     double u_loss, i_gain, i_change, i_length, u_length;
 
-    n= V->num_nodes;
     i_route= V->route_num[i];
     u_route= V->route_num[u];    
 
@@ -59,7 +59,7 @@ bool Postsert::evaluate(class VRP *V, int u, int i, VRPMove *M)
     iu= V->d[i][u];
     ui= V->d[u][i];
     uj= V->d[u][j];
-    ju= V->d[j][u];
+    //ju= V->d[j][u];
     ij= V->d[i][j];
     ti= V->d[t][i];
 
@@ -85,9 +85,9 @@ bool Postsert::evaluate(class VRP *V, int u, int i, VRPMove *M)
     }
 
     start_u= V->route[u_route].start;
-    start_i= V->route[i_route].start;
+    //start_i= V->route[i_route].start;
     end_u= V->route[u_route].end;
-    end_i= V->route[i_route].end;
+    //end_i= V->route[i_route].end;
 
     if(u_route==i_route)
     {
@@ -190,9 +190,9 @@ bool Postsert::move(VRP *V, int u, int i)
     /// relevant solution information.
     /// 
 
-    int pre_i, post_i, pre_u, post_u;
+    int post_i, pre_u, post_u;
     int start_u,end_u, start_i, end_i;
-    int n, i_route, u_route;
+    int i_route, u_route;
     int new_i_end, new_i_start, new_u_start, new_u_end;
     VRPMove M;
 
@@ -236,7 +236,6 @@ bool Postsert::move(VRP *V, int u, int i)
         return true;
     }
 
-    n= V->num_nodes;
     i_route= V->route_num[i];
     u_route= V->route_num[u];
 
@@ -248,7 +247,7 @@ bool Postsert::move(VRP *V, int u, int i)
     end_i= V->route[i_route].end;
 
     // pre_i is what used to be before i
-    pre_i= V->pred_array[i];
+    //pre_i= V->pred_array[i];
     // post_i is what used to be after i
     post_i= V->next_array[i];
     // pre_u is what used to be before u

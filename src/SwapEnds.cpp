@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -24,8 +25,8 @@ bool SwapEnds::evaluate(class VRP *V, int a, int v, VRPMove *M)
     ///
 
     
-    int load_after_a, load_after_v, new_a_load, new_v_load, added_to_a, added_to_v, n, b, w;
-    double new_a_len, new_v_len ;
+    int added_to_a, added_to_v, b, w;
+    double new_a_len, new_v_len, new_a_load, new_v_load, load_after_a, load_after_v;
     double savings;
     VRPSegment Sa, Sv;
 
@@ -33,8 +34,6 @@ bool SwapEnds::evaluate(class VRP *V, int a, int v, VRPMove *M)
     if(a==VRPH_DEPOT || v==VRPH_DEPOT)
         report_error("%s: Swap ends called with depot; Move doesn't make sense\n",__FUNCTION__);
 
-    n = V->num_nodes;
-    
 
     if(V->route_num[a] == V->route_num[v])
     {
@@ -115,8 +114,8 @@ bool SwapEnds::move(VRP *V, int a, int v)
         return false;    // move is infeasible
 
     int current_node, a_start, a_end, v_start, v_end;
-    int route_after_a, route_before_a, route_before_v, route_after_v;
-    int  n, u, b;
+    int route_after_a, route_after_v;
+    int  u, b;
 
 
 #if SWAP_ENDS_DEBUG>0
@@ -127,8 +126,6 @@ bool SwapEnds::move(VRP *V, int a, int v)
     if(a==VRPH_DEPOT || v==VRPH_DEPOT)
         report_error("%s: Swap ends called with depot; Move doesn't make sense\n",__FUNCTION__);
     
-
-    n = V->num_nodes;
 
     if(V->route_num[a] == V->route_num[v])
         report_error("%s: swap ends called with a and v in same route!\n",__FUNCTION__);
@@ -143,13 +140,13 @@ bool SwapEnds::move(VRP *V, int a, int v)
     a_start = V->route[V->route_num[a]].start;
     
     route_after_a = V->route_num[-V->next_array[a_end]];
-    route_before_a = V->route_num[-V->pred_array[a_start]];
+    //route_before_a = V->route_num[-V->pred_array[a_start]];
 
     v_end = V->route[V->route_num[v]].end;
     v_start = V->route[V->route_num[v]].start;
     
     route_after_v = V->route_num[-V->next_array[v_end]];
-    route_before_v = V->route_num[-V->pred_array[v_start]];
+    //route_before_v = V->route_num[-V->pred_array[v_start]];
     
     u = V->next_array[v];
     b = V->next_array[a];

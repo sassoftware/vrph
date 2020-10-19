@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -23,7 +24,7 @@ bool OrOpt::search(class VRP *V, int a, int len, int rules)
 
     VRPMove M, BestM;
     BestM.savings=VRP_INFINITY;
-    int i,b,c,d;
+    int i,c,d;
     int string_end;
     int str[10];
         
@@ -88,7 +89,7 @@ bool OrOpt::search(class VRP *V, int a, int len, int rules)
         {
             
             d=VRPH_MAX(V->next_array[c],0);
-            b=VRPH_MAX(V->pred_array[c],0);
+            //b=VRPH_MAX(V->pred_array[c],0);
 
             int flag=0;
             if(d==VRPH_DEPOT)

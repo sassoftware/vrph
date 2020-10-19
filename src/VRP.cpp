@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -33,6 +34,7 @@ VRP::VRP(int n)
     num_original_nodes=n;
     total_demand=0;
     num_days=0;
+    strncpy(name,"noname\0",7);
     
     next_array = new int[n+2];
     pred_array = new int[n+2];
@@ -196,7 +198,8 @@ VRP::~VRP()
 
     delete [] this->best_sol_buff;
     delete [] this->current_sol_buff;
-    delete [] this->d[0];
+    if(this->d)
+       delete [] this->d[0];
     delete [] this->d;
     delete [] this->fixed[0];
     delete [] this->fixed;
@@ -295,7 +298,7 @@ double VRP::get_best_known()
     
 }
 
-int VRP::get_max_veh_capacity()
+double VRP::get_max_veh_capacity()
 {   
     return this->max_veh_capacity;
 }
@@ -423,7 +426,6 @@ void VRP::create_neighbor_lists(int nsize)
 
 
     int i,j,n,b;
-    int k;
     double dd;
     double max;
     int maxpos;
@@ -497,8 +499,7 @@ void VRP::create_neighbor_lists(int nsize)
     printf("\n\n");
 #endif
 
-
-    k=0;
+    
     // Done with NeighborList for VRPH_DEPOT.  Now do it for the rest of the nodes
     for(i=1;i<=n;i++)
     {
@@ -629,7 +630,7 @@ void VRP::create_neighbor_lists(int nsize)
             }
 #if NEIGHBOR_DEBUG
 
-            printf("NList[%d]=%d,%f[%f]",b,nodes[i].neighbor_list[b].position,nodes[i].neighbor_list[b].val,d[i][nodes[i].neighbor_list[b].position]);
+            printf("NList[%d]=%d,%f[%f]\n",b,nodes[i].neighbor_list[b].position,nodes[i].neighbor_list[b].val,d[i][nodes[i].neighbor_list[b].position]);
 
 #endif
         }
@@ -702,17 +703,15 @@ void VRP::refresh_routes()
     ///
 
 
-    int i, n, cnt;
+    int i, cnt;
     double len=0;
     double rlen=0;
     double tot_len=0;
     int next_node;
-    int current_node, current_route, route_start, current_start, current_end;
-    int total_load = 0;
-    int current_load = 0;
+    int current_node, current_route, route_start, current_start;
+    double total_load = 0;
+    double current_load = 0;
 
-
-    n=num_nodes;
 
     i = 1;
     cnt = 0;
@@ -722,7 +721,7 @@ void VRP::refresh_routes()
     current_route = route_num[current_node];
 
     current_start = route[current_route].start;
-    current_end = route[current_route].end;
+    //current_end = route[current_route].end;
 
     total_load+=nodes[current_node].demand;
     current_load+=nodes[current_node].demand;
@@ -776,7 +775,7 @@ void VRP::refresh_routes()
             rlen+=d[current_node][VRPH_DEPOT];
             tot_len+=rlen;
             current_route=route_num[current_node];
-            current_end = route[current_route].end;
+            //current_end = route[current_route].end;
 
             route[current_route].length = rlen;
             route[current_route].load = current_load;
@@ -785,7 +784,7 @@ void VRP::refresh_routes()
             route_start = - (next_array[current_node]);    
             current_route = route_num[route_start];
             current_start = route[current_route].start;
-            current_end = route[current_route].end;
+            //current_end = route[current_route].end;
             if(route_start != current_start)
             {
                 fprintf(stderr,"Route %d:  %d != %d\n",current_route, route_start, current_start);
@@ -1035,9 +1034,9 @@ bool VRP::postsert_dummy(int i)
 {
     // This function inserts dummy node after i
 
-    int pre_i, post_i, dummy;
+    int post_i, dummy;
     int start, end, start_i, end_i;
-    int n, i_route;
+    int i_route;
     //double tu, uv, tv, iu, ju, ij, u_loss, i_gain, i_change, i_length, u_length;
 
     // Special cases first
@@ -1045,7 +1044,6 @@ bool VRP::postsert_dummy(int i)
     if(i<=VRPH_DEPOT || i>matrix_size)
         report_error("%s: input doesn't make sense\n",__FUNCTION__);
 
-    n= num_nodes;
     dummy= dummy_index;
 
     i_route= route_num[i];
@@ -1061,7 +1059,7 @@ bool VRP::postsert_dummy(int i)
         end=end_i;
 
     // pre_i is what used to be before i
-    pre_i= pred_array[i];
+    //pre_i= pred_array[i];
     // post_i is what used to be after i
     post_i= next_array[i];
 
@@ -1096,12 +1094,11 @@ bool VRP::presert_dummy(int i)
     // This function inserts a dummy node BEFORE node i in 
     // whatever route node i is currently in
 
-    int pre_i, post_i;
+    int pre_i;
     int start, end, start_i, end_i, dummy;
-    int n, i_route;
+    int i_route;
 
 
-    n= num_nodes ;
     dummy = dummy_index; // dummy node has index (n+1)
 
     if(i<=VRPH_DEPOT)
@@ -1124,7 +1121,7 @@ bool VRP::presert_dummy(int i)
     // pre_i is what used to be before i
     pre_i= pred_array[i];
     // post_i is what used to be after i
-    post_i= next_array[i];
+    //post_i= next_array[i];
 
 
     // dummy is now followed by i
@@ -1151,9 +1148,8 @@ bool VRP::presert_dummy(int i)
 }
 bool VRP::remove_dummy()
 {
-    int pre_d, post_d, d_route, dummy, d_start, d_end, n;
+    int pre_d, post_d, d_route, dummy, d_start, d_end;
 
-    n= num_nodes;
     dummy= dummy_index;
 
     post_d= next_array[dummy];
@@ -1281,8 +1277,8 @@ bool VRP::create_default_routes()
             {
                 // Update the worst violations
 
-                printf("Default routes load violation: %d > %d\n",route[i].load,
-                    max_veh_capacity);
+               //printf("Default routes load violation: %g > %g\n",route[i].load,
+               //     max_veh_capacity);
 
                 if( (route[i].load - max_veh_capacity) > 
                     violation.capacity_violation)
@@ -1412,13 +1408,13 @@ bool VRP::create_default_routes(int day)
             {
                 // Update the worst violations
 
-                printf("Default routes load violation: %d > %d\n",route[i].load,
-                    max_veh_capacity);
+               //printf("Default routes load violation: %g > %g\n",route[i].load,
+               //     max_veh_capacity);
 
                 if( (route[i].load - max_veh_capacity) > 
                     violation.capacity_violation)
                 {
-                    violation.capacity_violation = 
+                   violation.capacity_violation = 
                         (route[i].load - max_veh_capacity);
                 }
 
@@ -1519,8 +1515,8 @@ bool VRP::perturb()
 
     // Now insert the first m nodes from the sorted list into new locations.
 
-    int a,b,c,j,k,node1=0, node2=0,b_route,b_load,k_demand, jj, ll;
-    double  best_savings,b_len,jk,kl,jl;
+    int a,b,c,j,k,node1=0, node2=0;
+    double  best_savings;
 
 
     for(j=0;j<m;j++)
@@ -1528,17 +1524,17 @@ bool VRP::perturb()
         best_savings=VRP_INFINITY;
 
         k=v[j].position;
-        k_demand= nodes[k].demand;
+        //k_demand= nodes[k].demand;
 
         // Node k will be moved
 
         // Former neighboring nodes of k
-        jj=VRPH_MAX(pred_array[k],0);
-        ll=VRPH_MAX(next_array[k],0);
-
-        jk= d[jj][k];
-        kl= d[k][ll];
-        jl= d[jj][ll];
+        //jj=VRPH_MAX(pred_array[k],0);
+        //ll=VRPH_MAX(next_array[k],0);
+        
+        //jk= d[jj][k];
+        //kl= d[k][ll];
+        //jl= d[jj][ll];
 
 
         // Node k will be moved - look for a new location
@@ -1546,9 +1542,9 @@ bool VRP::perturb()
         b=VRPH_ABS(next_array[VRPH_DEPOT]);
         while(b!=VRPH_DEPOT)
         {
-            b_route= route_num[b];
-            b_load= route[b].load;
-            b_len= route[b].length;
+           //b_route= route_num[b];
+            //b_load= route[b].load;
+            //b_len= route[b].length;
 
             a=VRPH_MAX(pred_array[b],0);
             c=VRPH_MAX(next_array[b],0);
@@ -1637,7 +1633,7 @@ bool VRP::eject_node(int j)
 
     int k=j;
 
-    int c, e, k_route, c_route, e_route, k_start, k_end,flag;
+    int c, e, k_route, k_start, k_end,flag;
     double change,ck,ke,ce;
 
     flag=0;
@@ -1651,8 +1647,8 @@ bool VRP::eject_node(int j)
     e= next_array[k];
 
     k_route= route_num[k];
-    c_route= route_num[VRPH_ABS(c)];
-    e_route= route_num[VRPH_ABS(e)];
+    //c_route= route_num[VRPH_ABS(c)];
+    //e_route= route_num[VRPH_ABS(e)];
 
     k_start= route[k_route].start;
     k_end= route[k_route].end;
@@ -2036,11 +2032,11 @@ void VRP::find_cheapest_insertion(int j, int *edge, double *costs, int rules)
     /// singleton route.
     ///
 
-    int h,i,k,m, best_route, new_route, next_node;
+    int h,i,k,m, new_route, next_node;
     double ij,ik,jk,min_feasible_increase, increase, min_increase;
 
     this->normalize_route_numbers();
-    best_route = -1;
+    //best_route = -1;
     k=-1;
 
     // Set the increase to be a singleton route since this must be feasible
@@ -2085,7 +2081,7 @@ void VRP::find_cheapest_insertion(int j, int *edge, double *costs, int rules)
                     {
                         edge[0]=i;
                         edge[1]=k;
-                        best_route=new_route;
+                        //best_route=new_route;
                         min_feasible_increase=increase;
 
                     }
@@ -2123,7 +2119,7 @@ void VRP::find_cheapest_insertion(int j, int *edge, double *costs, int rules)
                     {
                         edge[0]=i;
                         edge[1]=k;
-                        best_route=new_route;
+                        //best_route=new_route;
                         min_feasible_increase=increase;
                     }
                 }
@@ -2153,7 +2149,7 @@ void VRP::find_cheapest_insertion(int j, int *edge, double *costs, int rules)
                     {
                         edge[0]=i;
                         edge[1]=k;
-                        best_route=new_route;
+                        //best_route=new_route;
                         min_feasible_increase=increase;
                     }
 
@@ -2189,7 +2185,7 @@ void VRP::find_cheapest_insertion(int j, int *edge, double *costs, int rules)
             {
                 edge[0]=i;
                 edge[1]=k;
-                best_route=new_route;
+                //best_route=new_route;
                 min_feasible_increase=increase;
             }
         }
@@ -2232,7 +2228,7 @@ void VRP::find_cheapest_insertion(int j, int *edge, double *costs, int rules)
                     {
                         edge[0]=h;
                         edge[1]=i;
-                        best_route=new_route;
+                        //best_route=new_route;
                         min_feasible_increase=increase;
                     }
                 }
@@ -2261,7 +2257,7 @@ void VRP::find_cheapest_insertion(int j, int *edge, double *costs, int rules)
                     {
                         edge[0]=i;
                         edge[1]=k;
-                        best_route=new_route;
+                        //best_route=new_route;
                         min_feasible_increase=increase;
                     }
                 }
@@ -2289,6 +2285,8 @@ int VRP::inject_set(int num, int *nodelist, int rules, int attempts)
     double best_obj=VRP_INFINITY;
     int *best_sol, *orderings,*best_ordering, *start_sol;
     int best_index=0;
+    if(num == 0)
+       return 0;
 
     best_sol=orderings=best_ordering=start_sol=NULL;
 
@@ -2302,7 +2300,12 @@ int VRP::inject_set(int num, int *nodelist, int rules, int attempts)
     }
 
     best_sol=new int[3+(this->num_nodes)+num];//!!! The eventual sol_buff is larger !!!!
+    if(!best_sol)
+       report_error("%s: memory allocation failure\n",__FUNCTION__);
     start_sol=new int[3+(this->num_nodes)+num];
+    if(!start_sol)
+       report_error("%s: memory allocation failure\n",__FUNCTION__);
+
     this->export_solution_buff(start_sol);
     this->import_solution_buff(start_sol);
     
@@ -2313,8 +2316,10 @@ int VRP::inject_set(int num, int *nodelist, int rules, int attempts)
         best_ordering=new int[num];
         int edge[4];
         double costs[2];
-        for(i=0;i<num;i++)
-            orderings[i]=i;
+        for(i=0;i<num;i++){
+           orderings[i]=i;
+           best_ordering[i]=i;
+        }
         
         for(i=0;i<attempts;i++)
         {
@@ -2549,12 +2554,16 @@ void VRP::normalize_route_numbers()
     int *indices;
     R= count_num_routes();
     n= this->num_original_nodes;
+    if(n == 0)
+       return;
 
 
     // First check to see if we are already normalized
 
     // Make the arrays 1-based to avoid insanity...
     indices=new int[n+1];
+    if(!indices)
+       return; //TODO: need error code
 
     for(i=0;i<=n;i++)
         indices[i]=1;
@@ -2923,7 +2932,7 @@ void VRP::clean_route(int r, int heuristics)
     /// until a local minimum is reached.
     ///
 
-    int i,j, r_start, r_end;
+   int i,j, r_start;
     double start_val, end_val, start_rlen, end_rlen;
 
 #ifdef LOCAL_SEARCH_STATISTICS
@@ -2949,7 +2958,7 @@ start_improving:
 
     end_val = - VRP_INFINITY;
     r_start=route[r].start;
-    r_end=route[r].end;
+    //r_end=route[r].end;
 
     if((heuristics & ONE_POINT_MOVE)==ONE_POINT_MOVE)
     {
@@ -3721,6 +3730,8 @@ int VRP::read_fixed_edges(const char *filename)
     }
 
     fscanf(in,"%d\n",&k);
+    if(k < 0 || k > INT_MAX)
+       report_error("%s: Error in read_fixed_edges\n",__FUNCTION__);
 
     for(i=0;i<k;i++)
     {
@@ -3733,6 +3744,9 @@ int VRP::read_fixed_edges(const char *filename)
         this->fix_edge(a,b);
     }
 
+    if(in)
+       fclose(in);
+    
     // Return the number of fixed edges read in
     return k;
 }
@@ -4155,7 +4169,7 @@ bool VRP::check_fixed_edges(const char *message)
                         fprintf(stderr,"Fixed edge %d-%d not in solution!!",i,j);
                         fprintf(stderr,"%d-%d-%d\n",VRPH_MAX(this->pred_array[i],VRPH_DEPOT),i,
                             VRPH_MAX(this->next_array[i],VRPH_DEPOT));
-                        fprintf(stderr,message);
+                        fprintf(stderr,"%s",message);
 
                         if(this->fixed[j][i])
                             fprintf(stderr,"%d-%d also fixed\n",j,i);
@@ -4174,7 +4188,7 @@ bool VRP::check_fixed_edges(const char *message)
                         fprintf(stderr,"Fixed edge %d-%d not in solution!!",i,j);
                         fprintf(stderr,"%d-%d-%d\n",VRPH_MAX(this->pred_array[j],VRPH_DEPOT),j,
                             VRPH_MAX(this->next_array[j],VRPH_DEPOT));
-                        fprintf(stderr,message);
+                        fprintf(stderr,"%s",message);
                         if(this->fixed[j][i])
                             fprintf(stderr,"%d-%d also fixed\n",j,i);
                         else

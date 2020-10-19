@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -34,10 +35,10 @@ public:
     int    num_affected_routes;
     int    route_nums [MAX_AFFECTED_ROUTES];
     double route_lens [MAX_AFFECTED_ROUTES];
-    int    route_loads[MAX_AFFECTED_ROUTES];
+    double route_loads[MAX_AFFECTED_ROUTES];
     int    route_custs[MAX_AFFECTED_ROUTES];
 
-    double *arrival_times; // for time window addition
+    //double *arrival_times; // for time window addition
 
     double savings;
     int total_number_of_routes;
@@ -49,6 +50,10 @@ public:
 
     bool evaluated_savings;
 
+ private:
+    //TODO: if I enable this copy constructor I was getting junk in total_number_of_routes
+    //VRPMove(const VRPMove& src){/* do not create copies */}    
+    //VRPMove& operator=(const VRPMove&){ return *this; }
 };
 
 #endif

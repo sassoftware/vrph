@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -71,7 +72,9 @@ static long long zrng[]=
 206689908, 1035486424, 410559828, 883746510, 1317520915, 1194730483, 
 121224379};
 
+#ifdef VRPH_ADD_ENTROPY
 static bool initialized=false;
+#endif
 
 void lcgseed(int seed)
 {
@@ -82,8 +85,8 @@ void lcgseed(int seed)
     {
         zrng[stream]+=rand();
     }
-#endif
     initialized=true;
+#endif   
 }
 
 double lcgrand(int stream)

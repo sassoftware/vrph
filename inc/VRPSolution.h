@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -31,6 +32,11 @@ public:
     double time;    // time at which the solution was first discovered
     int hash(int salt); 
 
+ private:
+    VRPSolution(const VRPSolution& src){/* do not create copies */}
+    VRPSolution& operator=(const VRPSolution&){ return *this; }
+
+    
 };
 
 class VRPSolutionWarehouse
@@ -53,6 +59,10 @@ public:
     bool liquidate();
     void sort_sols();
     void show();
+
+ private:
+    VRPSolutionWarehouse(const VRPSolutionWarehouse& src){/* do not create copies */}
+    VRPSolutionWarehouse& operator=(const VRPSolutionWarehouse&){ return *this; }
     
 
 };

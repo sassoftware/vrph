@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -105,8 +106,8 @@ bool Sweep::Construct(class VRP *V)
         
         }
     }
-    
 
+    delete [] T;
     return true;
 }
 

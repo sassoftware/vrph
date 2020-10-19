@@ -2,7 +2,7 @@
 CC=g++
 CFLAGS= -O3 -Wall
 #-Wmost
-LINKER_FLAGS= -static -static-libgcc -static-libstdc++
+#LINKER_FLAGS= -static -static-libgcc -static-libstdc++
 
 # Set directory for static library and binaries
 # Defaults to ./lib and ./bin

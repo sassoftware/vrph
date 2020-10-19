@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -82,7 +83,7 @@ int VRPRoute::hash(int salt)
         fprintf(stderr,"end<start! %d<%d\n",this->ordering[num_customers-1],this->ordering[0]);
         for(i=0;i<this->num_customers;i++)
             fprintf(stderr,"%d ",this->ordering[i]);
-        fprintf(stderr,"Length=%f;\nLoad=%d\nObj=%f\nStart=%d\nEnd=%d\n",this->length,this->load,this->obj_val,
+        fprintf(stderr,"Length=%f;\nLoad=%g\nObj=%f\nStart=%d\nEnd=%d\n",this->length,this->load,this->obj_val,
             this->start,this->end);
     
         report_error("%s: Error in route hash\n",__FUNCTION__);
@@ -115,8 +116,10 @@ void VRPRoute::create_name()
     // Make sure we have memory for the name
     if(!this->name)
     {
-        fprintf(stderr,"No memory allocated for the route name!\n");
-        exit(-1);
+       fprintf(stderr,"No memory allocated for the route name!\n");
+       assert(0);
+       return;
+       //exit(-1);
     }
 
     int i;

@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -37,7 +38,7 @@ public:
     int start;
     int end;
     double length;
-    int load;
+    double load;
     int num_customers;
     double obj_val;
 
@@ -65,6 +66,9 @@ public:
 
     int hash(int salt);
 
+ private:
+    VRPRoute(const VRPRoute& src){/* do not create copies */}
+    VRPRoute& operator=(const VRPRoute&){ return *this; }
 };
 
 
@@ -82,6 +86,10 @@ public:
     void remove_route(int hash_val, int hash_val2);
     int add_route(VRPRoute *R);
     void liquidate();
+
+ private:
+    VRPRouteWarehouse(const VRPRouteWarehouse& src){/* do not create copies */}
+    VRPRouteWarehouse& operator=(const VRPRouteWarehouse&){ return *this; }
 
 
 };

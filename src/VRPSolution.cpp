@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -56,14 +57,18 @@ VRPSolutionWarehouse::~VRPSolutionWarehouse()
     /// Destructor for the solution warehouse.
     ///
 
-    if(this->hash_table)
-        delete [] this->hash_table;    
-    //for(int i=0;i<this->max_size;i++)
-    //    this->sols[i].~VRPSolution();
-
-    if(this->sols)
-        delete [] this->sols; // Calls VRPSolution destructor
-
+   if(this->hash_table){
+      delete [] this->hash_table;
+      this->hash_table = NULL;
+   }
+   //for(int i=0;i<this->max_size;i++)
+   //    this->sols[i].~VRPSolution();
+   
+   if(this->sols){
+      delete [] this->sols; // Calls VRPSolution destructor
+      this->sols = NULL;
+   }
+   
 }
 
 
@@ -126,11 +131,18 @@ int VRPSolutionWarehouse::add_sol(VRPSolution *new_sol, int start_index)
 
     // We believe this is a new solution that should live in position hash_val
     // Add a new length and hval2 entry
+    //MVG:
+    if(this->hash_table[hash_val].num_vals == NUM_ENTRIES){
+       //Without this, there is a crash on X/X-n480-k70.
+       //refresh the hash table to make room, but then this could lead
+       // to duplicate entries being missed later on?
+       this->hash_table[hash_val].num_vals=0;//TODO: is this safe?
+    }
     this->hash_table[hash_val].length[this->hash_table[hash_val].num_vals]=new_sol->obj;
     this->hash_table[hash_val].hash_val_2[this->hash_table[hash_val].num_vals]=hash_val2;
+    assert(this->hash_table[hash_val].num_vals < NUM_ENTRIES);
     // Increment the counter
     this->hash_table[hash_val].num_vals++;
-
     // The hash table is updated - now add the solution in the correct location
     // Otherwise, we have to find out where to put the solution--start searching at
     // start_index-1

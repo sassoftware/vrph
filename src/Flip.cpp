@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -109,7 +110,7 @@ bool Flip::move(VRP *V, int start_point, int end_point)
     ///
 
     int current, old_next, cnt;
-    int start, end, i, route_num;
+    int start, end, route_num;
     VRPMove M;
 
     if(start_point<=VRPH_DEPOT || end_point<=VRPH_DEPOT )
@@ -133,8 +134,6 @@ bool Flip::move(VRP *V, int start_point, int end_point)
     V->update(&M);
 
     // Now update the arrays
-
-    i=0;
 
     start = start_point;
     end = end_point;

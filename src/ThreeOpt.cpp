@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -22,18 +23,13 @@ bool ThreeOpt::search(class VRP *V, int r, int rules)
     ///
 
     VRPMove M, BestM;
-    int ii,a,b,c,d,e,f;
+    int a,b,c,d,e,f;
 
     BestM.savings=VRP_INFINITY;
 
-    int e11, e12, e21, e22, e31, e32;
     // The edges involved in the move: e1, e2, e3
 
-
     int accept_type=VRPH_FIRST_ACCEPT;
-
-    // Initialize to null edges
-    e11=e12=e21=e22=e31=e32=0;    
 
     if( (rules & VRPH_USE_NEIGHBOR_LIST) > 0)
         report_error("%s: neighbor_list not used in 3OPT search--searches all nodes in route\n",__FUNCTION__);
@@ -45,8 +41,6 @@ bool ThreeOpt::search(class VRP *V, int r, int rules)
 
     if( (rules & VRPH_BEST_ACCEPT) == VRPH_BEST_ACCEPT)
         accept_type=VRPH_BEST_ACCEPT;
-
-    ii=0;
 
     // CG: ~~We begin with the edges a-b, c-d, and e-f~~
     // This is incorrect, the first
@@ -143,8 +137,11 @@ bool ThreeOpt::search(class VRP *V, int r, int rules)
     } while (a != a_end);
 
 
-    if(accept_type==VRPH_FIRST_ACCEPT || BestM.savings==VRP_INFINITY)
-        return false;
+    if(accept_type==VRPH_FIRST_ACCEPT || BestM.savings==VRP_INFINITY){
+       if(old_sol)
+          delete [] old_sol;
+       return false;
+    }
 
     if(accept_type==VRPH_BEST_ACCEPT || accept_type==VRPH_LI_ACCEPT)
     {
@@ -173,11 +170,13 @@ bool ThreeOpt::search(class VRP *V, int r, int rules)
         }
     }
 
+    if(old_sol)
+       delete [] old_sol;    
+
     if(move(V,&BestM)==false)//best_e11,best_e12,best_e21,best_e22, best_e31, best_e32,rules)==false)
         report_error("%s: first move is false!\n",__FUNCTION__);
     else
-        return true;
-
+        return true;    
 
     return false;
 }
@@ -315,7 +314,7 @@ bool ThreeOpt::move(class VRP *V, VRPMove *M)// int a, int b, int c, int d, int 
         //
         double oldlen, oldobj;
         double temp_maxlen;
-        int temp_vehcap;
+        double temp_vehcap;
 
         // Remember the actual maximums as we may need to artificially inflate them.
         temp_maxlen= V->max_route_length;
@@ -327,12 +326,13 @@ bool ThreeOpt::move(class VRP *V, VRPMove *M)// int a, int b, int c, int d, int 
         oldobj= V->total_route_length;
 
 
-
+        /*
         // #a->b# c->e d->f ( 2-opt move )
         //               _____
         //              /     \
         // >--a--b->-c  d-<-e  f-->
         //            \____/  
+        */
         if(type==1)
         {
 
@@ -352,11 +352,13 @@ bool ThreeOpt::move(class VRP *V, VRPMove *M)// int a, int b, int c, int d, int 
 
         }
 
+        /*
         // a->c b->d #e->f#  ( 2-opt move )
         //        _____
         //       /     \
         // >--a  b-<-c  d->-e--f-->
         //     \____/  
+        */
         if(type==2)
         {
 
@@ -376,11 +378,13 @@ bool ThreeOpt::move(class VRP *V, VRPMove *M)// int a, int b, int c, int d, int 
             return true;
         }
 
+        /*
         // a->c b->e d->f  ( 3-opt move )
         //         ________
         //        /        \
         // >--a  b-<-c  d-<-e  f-->
         //     \____/    \____/
+        */
         if(type==3)
         {
             V->max_route_length=VRP_INFINITY;    
@@ -415,13 +419,14 @@ bool ThreeOpt::move(class VRP *V, VRPMove *M)// int a, int b, int c, int d, int 
             return true;
         }
 
-
+        /*
         // a->d b->e c->f  (3-opt move)
         //         _________
         //        /         \
         // >--a  b->-c   d->-e  f-->
         //     \______\_/      /
         //             \______/
+        */
         if(type==4)
         {
             if(a!=VRPH_DEPOT && f!=VRPH_DEPOT)
@@ -496,13 +501,15 @@ bool ThreeOpt::move(class VRP *V, VRPMove *M)// int a, int b, int c, int d, int 
 
 
         }
-
-        // a->d c->e b->f  (3-opt move)
-        //          _________
-        //         /   ____  \
-        //        /   /    \  \  
-        // >--a  b-<-c  d->-e  f-->
-        //     \_______/  
+        
+        /*
+          --- a->d c->e b->f  (3-opt move)
+          ---        _________
+          ---       /         \
+          ---      /   /    \  \  
+          --- >--a  b-<-c  d->-e  f-->
+          ---   \_______/  
+        */
         if(type==5)
         {
             V->max_route_length=VRP_INFINITY;    
@@ -567,12 +574,14 @@ bool ThreeOpt::move(class VRP *V, VRPMove *M)// int a, int b, int c, int d, int 
             return true;
         }
 
+        /*
         // a->e b->d c->f  (3-opt move)
         //             _______
         //            /       \
         // >--a  b->-c  d-<-e  f-->
         //     \  \____/   / 
         //      \_________/  
+        */
         if(type==6)
         {
             V->max_route_length=VRP_INFINITY;    
@@ -636,11 +645,13 @@ bool ThreeOpt::move(class VRP *V, VRPMove *M)// int a, int b, int c, int d, int 
 
         }
 
-        // a->e #c->d# b->f  (2-opt move)
+        /* 
+        //a->e #c->d# b->f  (2-opt move)
         //        ____________
         //       /            \
         // >--a  b-<-c--d-<-e  f-->
         //     \___________/ 
+        */
         if(type==7)
         {
 

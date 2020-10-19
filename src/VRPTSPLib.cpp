@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -11,6 +12,18 @@
 ////////////////////////////////////////////////////////////
 
 #include "VRPH.h"
+
+//Hack to make fscanf of a string more safe:
+#define mystrfscanf(infile,fmt,str)                         \
+   {                                                        \
+      sprintf((fmt),"%%%d%%s",VRPH_STRING_SIZE-1);          \
+      fscanf((infile),(fmt),(str));                         \
+   }
+#define mystreolfscanf(infile,fmt,str)                           \
+   {                                                             \
+      sprintf((fmt),"%%%d%%s\n",VRPH_STRING_SIZE-1);             \
+      fscanf((infile),(fmt),(str));                              \
+   }
 
 // Lists the various TSPLIB strings that are supported
 const char *SupportedTSPLIBStrings[]={
@@ -64,6 +77,7 @@ int VRPGetDimension(char *filename)
 
     FILE *infile;
     char str1[VRPH_STRING_SIZE];
+    char fmt[20];
     int i,n;
 
     n=-1;
@@ -78,11 +92,13 @@ int VRPGetDimension(char *filename)
 
     }
 
-    fscanf(infile,"%s",str1);
+    //myfscanf(infile,"%s",str1);
+    mystrfscanf(infile,fmt,str1);
 
     while(strncmp(str1,"DIMENSION:",10)!=0 && strncmp(str1,"DIMENSION",9)!=0)
     {
-        fscanf(infile,"%s\n",str1);
+       //myfscanf(infile,"%s\n",str1);
+       mystreolfscanf(infile,fmt,str1);
         if(feof(infile))
         {    
             fprintf(stderr, "The keyword DIMENSION was not found in the TSPLIB file %s\nExiting...\n",filename);
@@ -91,7 +107,8 @@ int VRPGetDimension(char *filename)
 
     }
     // We found the keyword DIMENSION-get n now - watch out for an annoying possibility involving the colon!
-    fscanf(infile,"%s",str1);
+    //fscanf(infile,"%s",str1);
+    mystrfscanf(infile,fmt,str1);
     if(strncmp(str1,":",1)==0)
         fscanf(infile,"%d\n",&n);
     else
@@ -102,11 +119,13 @@ int VRPGetDimension(char *filename)
 
     // Now make sure we have the string EOF as the very last line
 
-    fscanf(infile,"%s\n",str1);
+    //fscanf(infile,"%s\n",str1);
+    mystreolfscanf(infile,fmt,str1);
     while(strncmp(str1,"EOF",3)!=0)
     {
-        fscanf(infile,"%s\n",str1);        
-
+       //fscanf(infile,"%s\n",str1);
+       mystreolfscanf(infile,fmt,str1);        
+        
         if(feof(infile) && strncmp(str1,"EOF",3)!=0)
         {    
             fprintf(stderr, "The keyword EOF was not found in the TSPLIB file %s\n",
@@ -134,6 +153,7 @@ int VRPGetNumDays(char *filename)
 
     FILE *infile;
     char str1[VRPH_STRING_SIZE];
+    char fmt[20];
     int i,n;
 
     n=-1;
@@ -147,12 +167,14 @@ int VRPGetNumDays(char *filename)
         exit(-1);
 
     }
-
-    fscanf(infile,"%s",str1);
+    
+    //fscanf(infile,"%s",str1);
+    mystrfscanf(infile,fmt,str1);
 
     while(strncmp(str1,"NUM_DAYS",8)!=0 && strncmp(str1,"NUM_DAYS:",9)!=0)
     {
-        fscanf(infile,"%s\n",str1);
+       //fscanf(infile,"%s\n",str1);
+       mystreolfscanf(infile,fmt,str1);
         if(feof(infile))
         {    
             // Assume a 1-day problem

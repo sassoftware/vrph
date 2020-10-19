@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -45,7 +46,7 @@ bool MoveString::evaluate(VRP *V, int a, int b, int u, int v, VRPMove *M)
         a_route = V->route_num[b];
 
     double tu, vw, ab, au, vb, tw, savings, new_a_len=0, new_u_len=0;
-    int new_a_load=0, new_u_load=0;
+    double new_a_load=0, new_u_load=0;
 
     ab= V->d[a][b];
     tu= V->d[t][u];
@@ -218,7 +219,7 @@ bool MoveString::move(VRP *V, int a, int b, int u, int v)
 
         // Artificially inflate the constraints!
         double real_max_len= V->max_route_length;
-        int real_veh_max= V->max_veh_capacity;
+        double real_veh_max= V->max_veh_capacity;
 
         V->max_route_length=VRP_INFINITY;
         V->max_veh_capacity=VRP_INFINITY;
@@ -255,7 +256,7 @@ bool MoveString::move(VRP *V, int a, int b, int u, int v)
 
         // Artificially inflate the constraints!
         double real_max_len= V->max_route_length;
-        int real_veh_max= V->max_veh_capacity;
+        double real_veh_max= V->max_veh_capacity;
 
         V->max_route_length=VRP_INFINITY;
         V->max_veh_capacity=VRP_INFINITY;

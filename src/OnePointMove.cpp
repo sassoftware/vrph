@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -26,7 +27,6 @@ bool OnePointMove::search(class VRP *V, int j, int rules)
     M.savings=M.new_total_route_length=BestM.savings=BestM.new_total_route_length=VRP_INFINITY;
 
     int i,k;
-    int best_k=0;
     int accept_type;
 
     i=VRPH_MAX(V->pred_array[j],VRPH_DEPOT);
@@ -56,7 +56,7 @@ bool OnePointMove::search(class VRP *V, int j, int rules)
         accept_type=VRPH_LI_ACCEPT;
 
     // Create the search_space
-    V->create_search_neighborhood(j, rules);    
+    V->create_search_neighborhood(j, rules);
 
     int *old_sol=NULL;
     if(rules & VRPH_TABU)
@@ -69,6 +69,7 @@ bool OnePointMove::search(class VRP *V, int j, int rules)
     for(i=0;i<V->search_size;i++)
     {
         k=V->search_space[i];
+
         if(evaluate(V,j,k,rules,&M)==true)
         {
             // Feasible move found
@@ -77,7 +78,7 @@ bool OnePointMove::search(class VRP *V, int j, int rules)
                 if(move(V, &M)==false)
                     report_error("%s: move error 1\n",__FUNCTION__);
                 else
-                {
+                {             
                     if(!(rules & VRPH_TABU))
                         return true;
                     else
@@ -100,13 +101,12 @@ bool OnePointMove::search(class VRP *V, int j, int rules)
 
                 if(M.is_better(V, &BestM, rules))
                 {
-                    best_k=k;
+                   //best_k=k;
                     BestM=M;
                 }
             }                
         }
     }        
-
 
     // We've considered all the possibilities now...
     if(accept_type==VRPH_FIRST_ACCEPT || BestM.savings==VRP_INFINITY)
@@ -122,6 +122,8 @@ bool OnePointMove::search(class VRP *V, int j, int rules)
 
     if(move(V,&BestM)==true)
     {
+       //bool checkMove = V->check_move(&BestM,rules);
+       //printf("checkMove=%d savings=%g\n",checkMove,BestM.savings);
         if(!(rules & VRPH_TABU))
             return true;                    
     }
@@ -165,8 +167,7 @@ bool OnePointMove::route_search(class VRP *V, int r1, int r2, int rules)
     VRPMove M;
     VRPMove BestM;
     int k;
-    double best_savings=VRP_INFINITY;
-    int best_k=0;
+    double best_savings=VRP_INFINITY;    
     int accept_type;
 
 
@@ -211,7 +212,7 @@ bool OnePointMove::route_search(class VRP *V, int r1, int r2, int rules)
                     if(M.savings<best_savings)
                     {
                         best_savings=M.savings;
-                        best_k=k;
+                        //best_k=k;
                         BestM=M;
                     }
                 }
@@ -232,7 +233,7 @@ bool OnePointMove::route_search(class VRP *V, int r1, int r2, int rules)
                     if(M.savings<best_savings)
                     {
                         best_savings=M.savings;
-                        best_k=k;
+                        //best_k=k;
                         BestM=M;
                     }
                 }
@@ -316,10 +317,10 @@ bool OnePointMove::evaluate(class VRP *V, int j, int b, int rules, VRPMove *M)
 
     }
     
-    double savings1, savings2, best_savings;
+    double savings1, savings2;
     Postsert postsert;
     Presert presert;
-    best_savings=VRP_INFINITY;
+    //best_savings=VRP_INFINITY;
     savings1=VRP_INFINITY;
     savings2=VRP_INFINITY;
 
@@ -437,7 +438,7 @@ bool OnePointMove::evaluate(class VRP *V, int j, int b, int rules, VRPMove *M)
     savings1 = (V->d[a][j]+V->d[j][b]+V->d[i][k]) - (V->d[a][b]+V->d[i][j]+V->d[j][k])  ;
     savings2 = (V->d[i][k]+V->d[b][j]+V->d[j][c]) - (V->d[b][c]+V->d[i][j]+V->d[j][k])  ;
 
-    best_savings = VRPH_MIN(savings1, savings2);
+    //best_savings = VRPH_MIN(savings1, savings2);
 
     
     if( savings1 <= savings2 &&  (presert.evaluate(V,j,b,M)==true)
@@ -498,8 +499,8 @@ bool OnePointMove::move(class VRP *V, VRPMove *M)
     /// Makes the one point move determined by the VRPMove M. 
     ///        
     
-        
-    if(M->move_type==PRESERT)
+   //printf("OnePointMove::move savings:%g\n",M->savings);
+   if(M->move_type==PRESERT)
     {
         Presert presert;
         if(presert.move(V,M->move_arguments[0],M->move_arguments[1]))

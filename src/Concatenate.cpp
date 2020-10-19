@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -30,7 +31,7 @@ bool Concatenate::evaluate(VRP *V, int i_route, int j_route, int rules, VRPMove 
     
     
     double new_length, i_length, j_length;
-    int new_load, i_load, j_load;
+    double new_load, i_load, j_load;
     int i,j;
 
     // First make sure that the routes are in the correct form
@@ -89,8 +90,8 @@ bool Concatenate::move(VRP *V, int i_route, int j_route)
     ///
     
     VRPMove M;
-    int i,j, pre_i, pre_j, post_i, post_j, end_i, start_j, route_after_i,
-        route_after_j, route_before_i, route_before_j, current_node, next_node;
+    int i,j, pre_i, post_j, end_i, start_j, route_after_i,
+        route_after_j, route_before_i, current_node, next_node;
 
     i= V->route[i_route].start;
     j= V->route[j_route].end;
@@ -109,9 +110,9 @@ bool Concatenate::move(VRP *V, int i_route, int j_route)
     // pre_i is what used to be before i
     pre_i= V->pred_array[i];
     // post_i is what used to be after i
-    post_i= V->next_array[i];
+    //post_i= V->next_array[i];
     // pre_j is what used to be before j
-    pre_j= V->pred_array[j];
+    //pre_j= V->pred_array[j];
     // post_j is what used to be after j
     post_j= V->next_array[j];
 
@@ -122,12 +123,12 @@ bool Concatenate::move(VRP *V, int i_route, int j_route)
     start_j= V->route[j_route].start;
     
     // This is the first node in the route that used to follow i
-    route_after_i= V->next_array[end_i];
+    route_after_i= V->next_array[VRPH_ABS(end_i)];
     // This is the last node in the route that used to precede i;
     route_before_i=pre_i;
     
     // This is the first node in the route that used to precede j
-    route_before_j= V->pred_array[start_j];
+    //route_before_j= V->pred_array[VRPH_ABS(start_j)];
     // This is the first node in the route that used to follow j
     route_after_j=post_j;
 

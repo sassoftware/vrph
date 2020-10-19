@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -285,7 +286,7 @@ bool Swap::move(VRP *V, int u, int i)
 #endif
         // We have h-i/t-u/j-v, so just put i after u
         double t1= V->max_route_length;
-        int t2= V->max_veh_capacity;
+        double t2= V->max_veh_capacity;
         V->max_route_length=VRP_INFINITY;
         V->max_veh_capacity=VRP_INFINITY;
 
@@ -317,7 +318,7 @@ bool Swap::move(VRP *V, int u, int i)
 
         // To make sure the move isn't prevented due to infeasibility!
         double t1= V->max_route_length;
-        int t2= V->max_veh_capacity;
+        double t2= V->max_veh_capacity;
         V->max_route_length=VRP_INFINITY;
         V->max_veh_capacity=VRP_INFINITY;
 
@@ -368,7 +369,7 @@ bool Swap::move(VRP *V, int u, int i)
 
         // To make sure the move isn't prevented due to infeasibility!
         double t1= V->max_route_length;
-        int t2= V->max_veh_capacity;
+        double t2= V->max_veh_capacity;
         V->max_route_length=VRP_INFINITY;
         V->max_veh_capacity=VRP_INFINITY;
 

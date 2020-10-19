@@ -1,3 +1,4 @@
+/* SAS modified this file. */
 ////////////////////////////////////////////////////////////
 //                                                        //
 // This file is part of the VRPH software package for     //
@@ -78,7 +79,7 @@ class VRPViolation
 {
 public:
     double length_violation;
-    int    capacity_violation;
+    double capacity_violation;
 };
 
 
@@ -105,7 +106,7 @@ struct VRPSegment
     int segment_end;
 
     int num_custs;
-    int load;
+    double load;
     double len;
 
 };
