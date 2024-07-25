@@ -22,16 +22,17 @@ void VRPH_version()
 }
 
 
-VRP::VRP(int n)
+VRP::VRP(int nNodes)
 {
     /// 
     /// Constructor for an n-node problem.
     ///
 
-    int i,j;
+    size_t n = nNodes; // size_t for determining array sizes which may overflow int
+    size_t i,j;
 
-    num_nodes=n;
-    num_original_nodes=n;
+    num_nodes=nNodes;
+    num_original_nodes=nNodes;
     total_demand=0;
     num_days=0;
     strncpy(name,"noname\0",7);
@@ -94,7 +95,7 @@ VRP::VRP(int n)
     total_service_time = 0.0;
 
     // Create the solution warehouse
-    this->solution_wh=new VRPSolutionWarehouse(NUM_ELITE_SOLUTIONS,n);
+    this->solution_wh=new VRPSolutionWarehouse(NUM_ELITE_SOLUTIONS,nNodes);
 
     this->tabu_list=new VRPTabuList(MAX_VRPH_TABU_LIST_SIZE);
     this->route_wh=NULL;
